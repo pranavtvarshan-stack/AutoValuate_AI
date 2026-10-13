@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutoValuate AI | Entri - Codeathon</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f4f6f9;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .main-card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            background: #ffffff;
+        }
+        .header-section {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
+            padding: 24px;
+        }
+        .result-box {
+            background-color: #e8f5e9;
+            border: 2px solid #81c784;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+        }
+        .result-price {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #2e7d32;
+        }
+        .form-label {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #495057;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card main-card">
+                <div class="header-section text-center">
+                    <h2 class="mb-1">AutoValuate AI</h2>
+                    <p class="mb-0 text-light opacity-75">US Automotive Market Pricing Simulation | Codeathon - Intermediate Assessment</p>
+                </div>
+                
+                <div class="card-body p-4 p-md-5">
+
+                    <!-- Prediction Result Display -->
+                    {% if prediction_text %}
+                    <div class="result-box mb-4">
+                        <h5 class="text-secondary mb-1">Estimated Market Value:</h5>
+                        <div class="result-price">{{ prediction_text }}</div>
+                        <small class="text-muted">Prediction generated using tuned machine learning pipeline.</small>
+                    </div>
+                    {% endif %}
+
+                    {% if error_text %}
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        {{ error_text }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                    {% endif %}
+
+                    <form id="priceForm" action="/predict" method="POST">
+                        <div class="row g-3">
+
+                            <!-- Section 1: Powertrain & Engine -->
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2 text-primary">1. Powertrain & Performance</h5>
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <label class="form-label">Engine Size (cu in):</label>
+                                <input type="number" step="any" class="form-control" name="enginesize" placeholder="e.g. 120.0" value="{{ form_data['enginesize'] if form_data else '' }}" required>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label">Horsepower (hp):</label>
+                                <input type="number" step="any" class="form-control" name="horsepower" placeholder="e.g. 95.0" value="{{ form_data['horsepower'] if form_data else '' }}" required>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label">Curb Weight (lbs):</label>
+                                <input type="number" step="any" class="form-control" name="curbweight" placeholder="e.g. 2400.0" value="{{ form_data['curbweight'] if form_data else '' }}" required>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label">Bore Ratio (inches):</label>
+                                <input type="number" step="any" class="form-control" name="boreratio" placeholder="e.g. 3.19" value="{{ form_data['boreratio'] if form_data else '' }}" required>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label">Fuel System (MPFI?):</label>
+                                <select class="form-select" name="fuelsystem_mpfi" required>
+                                    <option value="" disabled {% if not form_data or not form_data.get('fuelsystem_mpfi') %}selected{% endif %}>-- Select Fuel System --</option>
+                                    <option value="1" {% if form_data and form_data.get('fuelsystem_mpfi') == '1' %}selected{% endif %}>Yes (MPFI - Multi-point Injection)</option>
+                                    <option value="0" {% if form_data and form_data.get('fuelsystem_mpfi') == '0' %}selected{% endif %}>No (Carburetor / Other)</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label">Drive Wheel Layout:</label>
+                                <select class="form-select" name="drivewheel_rwd" required>
+                                    <option value="" disabled {% if not form_data or not form_data.get('drivewheel_rwd') %}selected{% endif %}>-- Select Drivetrain --</option>
+                                    <option value="0" {% if form_data and form_data.get('drivewheel_rwd') == '0' %}selected{% endif %}>FWD / 4WD (Front/All-Wheel)</option>
+                                    <option value="1" {% if form_data and form_data.get('drivewheel_rwd') == '1' %}selected{% endif %}>RWD (Rear-Wheel Drive)</option>
+                                </select>
+                            </div>
+
+                            <!-- Section 2: Exterior Dimensions -->
+                            <div class="col-12 mt-4">
+                                <h5 class="border-bottom pb-2 text-primary">2. Dimensions & Physical Metrics</h5>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label">Wheelbase (inches):</label>
+                                <input type="number" step="any" class="form-control" name="wheelbase" placeholder="e.g. 98.8" value="{{ form_data['wheelbase'] if form_data else '' }}" required>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label">Car Length (inches):</label>
+                                <input type="number" step="any" class="form-control" name="carlength" placeholder="e.g. 175.5" value="{{ form_data['carlength'] if form_data else '' }}" required>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label">Car Width (inches):</label>
+                                <input type="number" step="any" class="form-control" name="carwidth" placeholder="e.g. 65.5" value="{{ form_data['carwidth'] if form_data else '' }}" required>
+                            </div>
+
+                            <!-- Section 3: Market Segment & Economy -->
+                            <div class="col-12 mt-4">
+                                <h5 class="border-bottom pb-2 text-primary">3. Efficiency & Brand Tier</h5>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label">Brand Valuation Tier:</label>
+                                <select class="form-select" name="brand_tier_encoded" required>
+                                    <option value="" disabled {% if not form_data or not form_data.get('brand_tier_encoded') %}selected{% endif %}>-- Select Brand Tier --</option>
+                                    <option value="0" {% if form_data and form_data.get('brand_tier_encoded') == '0' %}selected{% endif %}>Budget (Toyota, Honda, Nissan, Mitsubishi...)</option>
+                                    <option value="1" {% if form_data and form_data.get('brand_tier_encoded') == '1' %}selected{% endif %}>Mid-Range (Mazda, Volvo, Peugeot, VW...)</option>
+                                    <option value="2" {% if form_data and form_data.get('brand_tier_encoded') == '2' %}selected{% endif %}>Luxury (Audi, BMW, Jaguar, Porsche...)</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label">City Fuel Economy (MPG):</label>
+                                <input type="number" step="any" class="form-control" name="citympg" placeholder="e.g. 26.0" value="{{ form_data['citympg'] if form_data else '' }}" required>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label">Highway Fuel Economy (MPG):</label>
+                                <input type="number" step="any" class="form-control" name="highwaympg" placeholder="e.g. 32.0" value="{{ form_data['highwaympg'] if form_data else '' }}" required>
+                            </div>
+
+                            <!-- Action Buttons: Submit & Reset -->
+                            <div class="col-12 mt-4 text-center d-flex justify-content-center gap-3">
+                                <button type="submit" class="btn btn-primary btn-lg px-4 shadow-sm">
+                                    Calculate Vehicle Price
+                                </button>
+                                <a href="/" class="btn btn-outline-secondary btn-lg px-4 shadow-sm">
+                                    Reset / Clear All
+                                </a>
+                            </div>
+
+                        </div>
+                    </form>
+
+                </div>
+                <div class="card-footer text-center text-muted py-3 bg-light">
+                    Built with Flask, Scikit-learn Pipeline & Bootstrap
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
